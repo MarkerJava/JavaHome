@@ -1,96 +1,151 @@
-## 前言
+## ArrayList源码解析
 
-**本文详细解读ArrayList、LinkedList及Vector源码，包括他们实现方法的底层源码，一步一步教你读懂源码。**
+**阅读导航**
 
-> 声明，本文用的是jdk1.8+
-
-> 注：源码解析部分比较细，建议放慢速度一步一步去理解
-
-@[TOC](目录)
-
-### 一、集合和数组区别
-
-#### 1. 集合是什么
-
-比如想要存储多个对象，能想到的是一个**容器**，没有学过集合之前可能用到的是StringBuffered、数组。但是问题来了，数组的长度是不可变的，扩展不灵活，那该怎么办？随后Java团队为了解决数组长度不可变，就提供了这么一个集合(Collection)。
-
-#### 2. 与数组的区别
-
-**长度区别**：数组长度固定；集合的长度可变（灵活易扩展）
-
-**存储内容区别**：数组存储的是同一种类型的元素；集合可以存储不同类型的元素（但我们开发者考虑安全问题一般使用范型）
-
-**存储数据的类型区别**：数组可以存储基本数据类型,也可以存储引用类型；集合只能存储引用类型(如存储int，它会自动装箱成Integer)
-
-### 二、List集合介绍
-
-#### **1. List特点**：有序(存储顺序和取出顺序一致)，可重复
-
-#### **2. List常用的3个子类**
-
-- **ArrayList**
-  * 底层数据结构是数组（线程不安全）
-
-- **LinkedList**
-  * 底层数据结构是链表（线程不安全）
-
-- **Vector**
-  * 底层数据结构是数组（线程安全）
+- 一、ArrayList简介
+- 二、ArrayList和LinkedList区别
+- 三、ArrayList与Vector区别是？
+- 四、ArrayList源码分析
+- 五、ArrayList遍历方式
 
 
-### 三、ArrayList、LinkedList、Vector源码解析
 
-> 好了，不BB太多，直接上源码
+#### 一、ArrayList简介简介
 
-#### 1.  ArrayList
+ArrayList实现了List接口，继承了AbstractList。底层基于动态数组实现的，对于随机访问非常快，它是通过index直接定位到数组对应位置的节点，所以随机访问占有优势。（非线程安全）
 
-````java
-常用方法：
-  add()
-  get()
-  set()
-  remove()
-````
 
-##### 1.1 先了解ArrayList的几个属性
 
-````java
-//ArrayList初始容量为10
+### 二、ArrayList 和 LinkedList 的区别
+
+1. ArrayList底层基于动态数组实现；而LinkedList底层基于链表实现
+2. ArrayList随机访问快，主要是通过index直接定位到数组对应位置的节点；而LinkedList需要从头结点或尾节点开始遍历，直到寻找到目标节点，因此在效率上ArrayList优于LinkedList
+3. ArrayList对于插入和删除效率低，因为需要移动目标节点后面的节点（通过System.arraycopy方法移动节点）；而LinkedList只需修改目标节点前后节点的next或prev属性即可，所以效率也会高。
+
+
+
+### 三、ArrayList与Vector区别是？
+
+Vector是线程安全的，几乎所有方法都被synchronize修饰，则线程安全。所以ArrayList 性能相对Vector会好得多。
+
+
+
+### 四、ArrayList源码分析
+
+#### 1、重要常量
+
+```java
+//默认的初始容量为10
 private static final int DEFAULT_CAPACITY = 10;
-//用于空实例的共享空数组实例
+
 private static final Object[] EMPTY_ELEMENTDATA = {};
-//用于默认大小空实例的共享空数组实例。
-//我们把它从EMPTY_ELEMENTDATA数组中区分出来，以知道在添加第一个元素时容量需要增加多少
+//默认空容量，长度为0
 private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
-//保存ArrayList数据的数组
-transient Object[] elementData; 
-//该属性设置容量大小，ArrayList 所包含的元素个数
+//elementData是集合真正存储数据内容
+transient Object[] elementData;
+// ArrayList中实际数据的数量
 private int size;
-````
+```
 
-验证上面讲的几个属性
+#### 2、无参构造函数
 
-````java
+```java
+//默认容量为10
+public ArrayList() {
+        this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
+    }
+```
+
+#### 3、有参构造函数
+
+```java
+//带初始容量大小的构造函数
 public ArrayList(int initialCapacity) {
-  			//如果指定容量大于0，那么数组就进行初始化成对应的容量
-        if (initialCapacity > 0) {
+        if (initialCapacity > 0) {//初始容量大于0,则实例化数组
             this.elementData = new Object[initialCapacity];
-        } else if (initialCapacity == 0) {
-          //如果初始容量为0，则默认返回空的数组EMPTY_ELEMENTDATA
+        } else if (initialCapacity == 0) {//初始容量或初始化等于0，就创建一个空的数组
             this.elementData = EMPTY_ELEMENTDATA;
-        } else {
+        } else {//否则初始容量小于0，就抛异常
             throw new IllegalArgumentException("Illegal Capacity: "+
                                                initialCapacity);
         }
     }
-//默认返回的DEFAULTCAPACITY_EMPTY_ELEMENTDATA空数组，
-//也就是说初始其实是空数组 当添加第一个元素的时候数组容量才变成10
-public ArrayList() {
-        this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
-    }
-````
+```
 
-##### 1.2 add方法（重点）
+```java
+public ArrayList(Collection<? extends E> c) {
+  //将构造方法中的参数转换成数组
+    elementData = c.toArray();
+  
+    if ((size = elementData.length) != 0) {
+      //再次进行判断
+        if (elementData.getClass() != Object[].class)
+          //数组的创建和拷贝
+            elementData = Arrays.copyOf(elementData, size, Object[].class);
+    } else {
+        // 把空数组的地址赋值给集合存元素的数组
+        this.elementData = EMPTY_ELEMENTDATA;
+    }
+}
+```
+
+#### 4、toArray方法
+
+```java
+//集合转数组的方法
+public Object[] toArray() {
+////调用数组工具类的方法
+    return Arrays.copyOf(elementData, size);
+}
+```
+
+#### 5、copyOf方法
+
+```java
+//elementData复制给original，size复制给newLength
+public static <T> T[] copyOf(T[] original, int newLength) {
+//再次调用方法得到一个数组
+    return (T[]) copyOf(original, newLength, original.getClass());
+}
+
+public static <T,U> T[] copyOf(U[] original, int newLength, Class<? extends T[]> newType) {
+        @SuppressWarnings("unchecked")
+        //做了个三元运算，不管如何，都会创建一个新数组
+        //新的数组长度是和集合的size一致的
+        T[] copy = ((Object)newType == (Object)Object[].class)
+            ? (T[]) new Object[newLength]
+            : (T[]) Array.newInstance(newType.getComponentType(), newLength);
+        //数组拷贝
+        System.arraycopy(original, 0, copy, 0,
+                         Math.min(original.length, newLength));
+        //返回新数组
+        return copy;
+    }
+```
+
+#### 6、add方法（将指定元素追加到列表末尾）
+
+```java
+private int newCapacity(int minCapacity) {
+    // >>表示右移，右移几位就相当于除以2的几次幂
+    // <<表示左移，左移几位就相当于除以2的几次幂
+    int oldCapacity = elementData.length;
+  //扩容核心算法，原容量的1.5陪
+    int newCapacity = oldCapacity + (oldCapacity >> 1);
+    if (newCapacity - minCapacity <= 0) {
+        if (elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA)
+            return Math.max(DEFAULT_CAPACITY, minCapacity);
+        if (minCapacity < 0) // overflow
+            throw new OutOfMemoryError();
+        return minCapacity;
+    }
+    return (newCapacity - MAX_ARRAY_SIZE <= 0)
+        ? newCapacity
+        : hugeCapacity(minCapacity);
+}
+```
+
+##### add方法（重点）
 
 具体实现步骤分为：
 
@@ -313,151 +368,22 @@ ArrayList总结：
 * 动态数组实现，增删时候，需要数组的拷贝复制
 * 第一次扩容后，如果容量还是小于minCapacity，就将容量扩充为minCapacity。
 
-#### 2、LinkedList
+### 五、ArrayList遍历方式
 
-> LinkedList比较简单易理解多了，接下来有些地方可能不会过多解释
-
-要知道LinkedList底层实现是【双向链表】的，接下来上源码即可，首先看两个构造方法吧。
-
-````java
-public LinkedList() {
-    }
-public LinkedList(Collection<? extends E> c) {
-        this();
-        addAll(c);
-    }
-````
-
-其实只要你把前面ArrayList的方法学好，基本也没有什么问题了，接下来我看几个常用的方法即可。
-
-##### 2.1 添加(add)、get、remove方法
-
-**add方法**
-
-````java
-//add方法
-//大家猜想一下，其实该方法就是把在链表最后添加元素的
-public void add(int index, E element) {
-        checkPositionIndex(index);
-        if (index == size)
-            linkLast(element);
-        else
-            linkBefore(element, node(index));
-    }
-//linkLast(element)实现的方法
-void linkLast(E e) {
-        final Node<E> l = last;
-        final Node<E> newNode = new Node<>(l, e, null);
-        last = newNode;
-        if (l == null)
-            first = newNode;
-        else
-            l.next = newNode;
-        size++;
-        modCount++;
-    }
-````
-
-**get方法**
-
-`````java
-public E get(int index) {
-        checkElementIndex(index);
-        return node(index).item;
-    }
-//node(index).item
-Node<E> node(int index) {
-        // assert isElementIndex(index);
-  			//下标长度的一半，从头遍历
-        if (index < (size >> 1)) {
-            Node<E> x = first;
-            for (int i = 0; i < index; i++)
-                x = x.next;
-            return x;
-        } else {//否则从尾部遍历
-            Node<E> x = last;
-            for (int i = size - 1; i > index; i--)
-                x = x.prev;
-            return x;
-        }
-    }
-`````
-
-**remove方法**
+1. 通过迭代器遍历
 
 ```java
-public boolean remove(Object o) {
-        if (o == null) {
-            for (Node<E> x = first; x != null; x = x.next) {
-                if (x.item == null) {
-                    unlink(x);//删除
-                    return true;
-                }
-            }
-        } else {
-            for (Node<E> x = first; x != null; x = x.next) {
-              	//使用equals判断的
-                if (o.equals(x.item)) {
-                    unlink(x);
-                    return true;
-                }
-            }
-        }
-        return false;
+ Iterator iter = list.iterator();
+    while (iter.hasNext()) {
+        System.out.println(iter.next());
     }
 ```
 
-**注**：LinkedList方法很多，基本都是可以通过源码慢慢看，我就不一一罗列了，有兴趣的可以自己通过一行一行看，其实源码都差不多的。
+2. for循环遍历
 
-#### 3、Vector
-
-关于Vector主要看以下几点即可
-
-* 底层数组实现，现在基本很少用，开发基本用ArrayList来替代
-* 线程安全，原因底层所有方法都是同步的，所以在性能方面有损失，则效率低
-
-#### 4、集合遍历方式
-
-````java
-import java.util.*;
-public class Demo {
-        public static void main(String[] args) {
-            List<String> list = new ArrayList();
-            list.add("kobe");
-            list.add("ja");
-            list.add("kk");
-            //方式一
-        for (int i = 0; i < list.size(); i++) {//for
-        System.out.print(list.get(i) + "  ");//get():获取指定索引处的值
-    }
-
-		System.out.print("\n第2种方式：");
-		for (Object object : list) {//foreach
-        System.out.print(object + "  ");
-    }
-
-		System.out.print("\n第3种方式：");
-    Iterator t = list.iterator();//Iterator：可以遍历集合的迭代器
-		while(t.hasNext()) {//boolean hasNext():是否存在下一个元素
-        System.out.print(t.next() + "  ");//E(Object) next():获得下一个元素的值
-    }
-
-		System.out.print("\n第4种方式：");
-    ListIterator listIterator = list.listIterator();//ListIterator：可以遍历集合的双向迭代器
-		while (listIterator.hasNext()) {//boolean hasNext():从左到右依次遍历  判断是否存在下一个元素
-        System.out.print(listIterator.next() + "  ");//E(Object) next():获得下一个元素的值
-    }
-}
-}
-````
-
-#### 5、怎么情况使用各个集合？
-
-* 具体看场景，建议如果查询比较多则用ArrayList，增删比较多则用LinkedList
-
-* ArrayList 随机遍历快，LinkedList添加删除快
-
-> 本篇文章如有错的地方，欢迎在评论指正。喜欢在微信看技术文章，想要获取更多的Java、BigData资源的同学，可以**关注微信公众号：自学大数据踩的坑**
-
-> 另，如果觉得这本篇文章写得不错，有点东西的话，各位人才记得来个三连【点赞+关注+分享】。
+```java
+for(String str:list){
+    System.out.println(str);
+　　 }  
+```
 

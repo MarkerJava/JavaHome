@@ -1,10 +1,10 @@
-## 前言
+### 前言
 
 学习ConcurrentHashMap之前，我们还是先来复习一下**CAS、volatile、乐观锁与悲观锁**的知识吧
 
 > 本文使用JDK1.8+
 
-## 一、CAS算法介绍
+### 一、CAS算法介绍
 
 * CAS（Compare and swap）比较与交换， 是一种有名的**无锁算法**，CAS的3个操作数
   * 内存值V
@@ -41,7 +41,7 @@ do{
   //就是指当两者进行比较时，如果相等，则证明共享数据没有被修改，替换成新值，然后继续往下运行；如果不相等，说明共享数据已经被修改，放弃已经所做的操作，然后重新执行刚才的操作。容易看出 CAS 操作是基于共享数据不会被修改的假设，采用了类似于数据库的 commit-retry 的模式。当同步冲突出现的机会很少时，这种假设能带来较大的性能提升。
 ````
 
-## 二、volatile介绍
+### 二、volatile介绍
 
 volatile变量是一个更轻量级的同步机制，因为在使用这些变量时不会发生上下文切换和线程调度等操作，但是volatile变量也存在一些局限，比如不能用于构建原子的复合操作，因此当一个变量依赖旧值时就不能使用volatile变量，volatile内部已经做了synchronized。
 
@@ -54,7 +54,7 @@ volatile变量是一个更轻量级的同步机制，因为在使用这些变量
   * 修改变量(赋值)实质上是在JVM中分了好几步，而在这几步内(从装载变量到修改)，它是不安全的.
   * 就是一次操作，要么完全成功，要么完全失败。
 
-## 三、乐观锁与悲观锁
+### 三、乐观锁与悲观锁
 
 独占锁是一种悲观锁，synchronized就是一种独占锁，它假设最坏的情况，并且只有在确保其它线程不会造成干扰的情况下执行，会导致其它所有需要锁的线程挂起，等待持有锁的线程释放锁。而另一个更加有效的锁就是乐观锁。所谓乐观锁就是，每次不加锁而是假设没有冲突而去完成某项操作，如果因为冲突失败就重试，直到成功为止。
 
@@ -76,15 +76,15 @@ CAS与synchronized的使用情景
 
 CAS适用于写比较少的情况下（多读场景，冲突一般较少），synchronized适用于写比较多的情况下（多写场景，冲突一般较多）
 
-## 四、Java中的原子操作( atomic operations)
+### 四、Java中的原子操作( atomic operations)
 
 原子操作指的是在一步之内就完成而且不能被中断，原子操作在多线程环境中是线程安全的，无需考虑同步的问题。
 
 > 学习ConcurrentHashMap之前，先了解JDK1.7与JDK1.8的区别，本文使用JDK1.8+
 
-## 五、JDK1.7和JDK1.8区别
+### 五、JDK1.7和JDK1.8区别
 
-### 1、JDK1.7
+#### 1、JDK1.7
 
 JDK1.7中ConcurrentHashMap是通过“锁分段”来实现线程安全的。啥？什么是“锁分段”？其实就是ConcurrentHashMap将哈希表分成许多片段（segments），每个片段（table）都类似于HashMap，它有一个HashEntry数组，数组的每项又是HashEntry组成的链表。每个片段都是Segment类型的。
 
@@ -102,13 +102,13 @@ static class Segment<K,V> extends ReentrantLock implements Serializable {
 
 **注**：线程如想访问某一key-value键值对，需要先获取键值对所在的segment的锁，获取锁后，其他线程就不能访问此segment了，但可以访问其他的segment。
 
-### 2、JDK1.8
+#### 2、JDK1.8
 
 在JDK1.8中，ConcurrentHashMap没有用“锁分段”来实现线程安全，而是使用**CAS算法**和**synchronized**来确保线程安全，但是底层segment并没有被删除的。
 
-## 六、ConcurrentHashMap的重要内部类及构造方法
+### 六、ConcurrentHashMap的重要内部类及构造方法
 
-### 1、重要内部类
+#### 1、重要内部类
 
 ````java
 //基本的内部类
@@ -121,7 +121,7 @@ static final class TreeBin<K,V> extends Node<K,V> {......}
 static final class ForwardingNode<K,V> extends Node<K,V> {......}
 ````
 
-### 2、构造方法
+#### 2、构造方法
 
 ````java
 //第一个构造器
@@ -148,9 +148,9 @@ public ConcurrentHashMap(int initialCapacity,
                              float loadFactor, int concurrencyLevel) {。。。。。。}
 ````
 
-## 七、ConcurrentHashMap核心方法
+### 七、ConcurrentHashMap核心方法
 
-### 1、put方法
+#### 1、put方法
 
 其实只要读懂之前HashMap的方法就轻松的，基本类似的，只不过ConcurrentHashMap多加几个方法而已。
 
@@ -284,7 +284,7 @@ private final void addCount(long x, int check) {。。。。。。}
 
 从上面源码已经了解了ConcurrentHashMap，它通过在**链表上加锁**来实现同步的。则看出ConcurrentHashMap其实就多增加了锁的个数，效率效率就提高；而HashTable是通过在每个方法上加Synchronized来实现同步的，这样使得效率略低于ConcurrentHashMap的原因。
 
-### 1.1 针对put方法里面的【扩容】知识
+#### 1.1 针对put方法里面的【扩容】知识
 
 ````java
     final Node<K,V>[] helpTransfer(Node<K,V>[] tab, Node<K,V> f) {
@@ -318,7 +318,7 @@ sizeCtl此时的低16位为N=扩容线程数+1
     }
 ````
 
-### 2、get方法
+#### 2、get方法
 
 ````java
 public V get(Object key) {
@@ -358,7 +358,7 @@ public V get(Object key) {
 
 ````
 
-## 八、为什么在高并发的情况下高效？
+#### 八、为什么在高并发的情况下高效？
 
 ConcurrentHashMap的源代码会涉及到散列算法和链表数据结构，所以，读者需要对散列算法和基于链表的数据结构有所了解，特别是对HashMap的进一步了解和回顾。
 
