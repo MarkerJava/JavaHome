@@ -27,12 +27,12 @@
 * [HashMap 的加载因子是0.75？(5)](https://github.com/MarkerJava/JavaHome/blob/master/Java%E9%9B%86%E5%90%88%E9%9D%A2%E8%AF%95/HashMap%20%E7%9A%84%E5%8A%A0%E8%BD%BD%E5%9B%A0%E5%AD%90%E6%98%AF0.75%EF%BC%9F%EF%BC%885%EF%BC%89.md)
 * [你真的知道，ConcurrentHashMap读操作为什么不需要加锁？(6)](https://github.com/MarkerJava/JavaHome/blob/master/Java%E9%9B%86%E5%90%88%E9%9D%A2%E8%AF%95/ConcurrentHashMap%E8%AF%BB%E6%93%8D%E4%BD%9C%E4%B8%8D%E9%9C%80%E8%A6%81%E6%9E%B7%E9%94%81%EF%BC%886%EF%BC%89.md)
 ### 多线程高并发
-* [多线程基础](https://github.com/MarkerJava/JavaHome/blob/master/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%AB%98%E5%B9%B6%E5%8F%91/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80%EF%BC%881%EF%BC%89.md)
-* [synchronized](https://github.com/MarkerJava/JavaHome/blob/master/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%AB%98%E5%B9%B6%E5%8F%91/synchronized.md)
-* [ThreadLocal](https://github.com/MarkerJava/JavaHome/blob/master/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%AB%98%E5%B9%B6%E5%8F%91/ThreadLocal.md)
-* [面大厂又被volatile关键字虐了吗？](https://github.com/MarkerJava/JavaHome/blob/master/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%AB%98%E5%B9%B6%E5%8F%91/volatile.md)
-* [CAS:面试被问到ABA如何解决？](https://github.com/MarkerJava/JavaHome/blob/master/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%AB%98%E5%B9%B6%E5%8F%91/CAS.md)
-* [Atomic介绍](https://github.com/MarkerJava/JavaHome/blob/master/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%AB%98%E5%B9%B6%E5%8F%91/Atomic.md)
+* [(一)多线程基础](https://github.com/MarkerJava/JavaHome/blob/master/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%AB%98%E5%B9%B6%E5%8F%91/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80%EF%BC%881%EF%BC%89.md)
+* [(二)synchronized](https://github.com/MarkerJava/JavaHome/blob/master/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%AB%98%E5%B9%B6%E5%8F%91/synchronized.md)
+* [(三)ThreadLocal](https://github.com/MarkerJava/JavaHome/blob/master/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%AB%98%E5%B9%B6%E5%8F%91/ThreadLocal.md)
+* [(四)面大厂又被volatile关键字虐了吗？](https://github.com/MarkerJava/JavaHome/blob/master/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%AB%98%E5%B9%B6%E5%8F%91/volatile.md)
+* [(五)CAS:面试被问到ABA如何解决？](https://github.com/MarkerJava/JavaHome/blob/master/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%AB%98%E5%B9%B6%E5%8F%91/CAS.md)
+* [(六)Atomic介绍](https://github.com/MarkerJava/JavaHome/blob/master/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%AB%98%E5%B9%B6%E5%8F%91/Atomic.md)
 ### Spring Boot
 * [Spring Boot(1)：入门篇](https://github.com/MarkerJava/JavaHome/blob/master/springboot/Spring%20Boot(1)%EF%BC%9A%E5%85%A5%E9%97%A8%E7%AF%87.md)
 * [Spring Boot(2)：Spring Boot扩展Spring MVC框架](https://github.com/MarkerJava/JavaHome/blob/master/springboot/Spring%20Boot(2)%EF%BC%9ASpring%20Boot%E6%89%A9%E5%B1%95Spring%20MVC%E6%A1%86%E6%9E%B6.md)
